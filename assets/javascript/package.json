@@ -1,0 +1,27 @@
+{
+  "name": "bamazoncustomer",
+  "version": "1.0.0",
+  "description": "Node application which asks a customer which product they would like to purchase from a products table in a MySQL database",
+  "main": "bamazonCustomer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mrduncle/bamazon.git"
+  },
+  "keywords": [
+    "customer",
+    "products"
+  ],
+  "author": "Duncan Campbell",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mrduncle/bamazon/issues"
+  },
+  "homepage": "https://github.com/mrduncle/bamazon#readme",
+  "dependencies": {
+    "inquirer": "^7.0.1",
+    "mysql": "^2.17.1"
+  }
+}
