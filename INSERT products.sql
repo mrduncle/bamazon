@@ -2,98 +2,114 @@ USE bamazon;
 
 INSERT INTO products
 (
-    productname
+    visproductID
+    ,productname
     ,departmentname
     ,price
     ,stockqty
 )
 VALUES
 (
-    "Nano M"
+    0
+    ,"Nano M"
     ,"Pyranha"
     ,1200.00
     ,15
 ),
 (
-	"SCUD"
+	1
+    ,"SCUD"
     ,"Bliss Stick"
     ,900.00
     ,10
 ),
 (
-	"Mystic"
+	2
+	,"Mystic"
     ,"Bliss Stick"
     ,900.00
     ,15
 ),
 (
-    "All Star"
+    3
+    ,"All Star"
     ,"Jackson"
     ,1100.00
     ,20
 ),
 (
-    "2Fun"
+    4
+    ,"2Fun"
     ,"Jackson"
     ,1000.00
     ,12
 ),
 (
-    "Gangsta"
+    5
+    ,"Gangsta"
     ,"Waka"
     ,1200.00
     ,25
 ),
 (
-    "Punk Rocker"
+    6
+    ,"Punk Rocker"
     ,"Jackson"
     ,1000.00
     ,7
 ),
 (
-    "2011 Hero"
+    7
+    ,"2011 Hero"
     ,"Jackson"
     ,1200.00
     ,20
 ),
 (
-	"Mini Mystic"
+	8
+    ,"Mini Mystic"
     ,"Bliss Stick"
     ,900.00
     ,5
 ),
 (
-	"RAD 185"
+	9
+    ,"RAD 185"
     ,"Bliss Stick"
     ,850.00
     ,3
 ),
 (
-	"Smoothy"
+	10
+    ,"Smoothy"
     ,"Bliss Stick"
     ,850.00
     ,11
 ),
 (
-	"Gonad M"
+	11
+    ,"Gonad M"
     ,"Dagger"
     ,1100.00
     ,16
 ),
 (
-	"Phantom 1.0"
+	12
+    ,"Phantom 1.0"
     ,"Dagger"
     ,1200.00
     ,25
 ),
 (
-	"Phoenix"
+	13
+    ,"Phoenix"
     ,"Wave Sports"
     ,1300.00
     ,26
 ),
 (
-	"Nirvana"
+	14
+    ,"Nirvana"
     ,"Jackson"
     ,1100.00
     ,30
