@@ -39,12 +39,12 @@ function orderComplete() {
     }
     else if (purchaseObject.inStock === 0) {
         if (purchaseObject.qty === 1) {
-            console.log("\n\nCongratulations!!! Your order has been processed, your request of " + purchaseObject.qty + 
-            " x " + purchaseObject.dept + " " + purchaseObject.prod + " has been placed on back order for you.")
+            console.log("\n\nCongratulations!!! Your order has been processed, your " + purchaseObject.qty + 
+            " x " + purchaseObject.dept + " " + purchaseObject.prod + " are on back order for you.")
         }
         else {
-            console.log("\n\nCongratulations!!! Your order has been processed, your request of " + purchaseObject.qty + 
-            " x " + purchaseObject.dept + " " + purchaseObject.prod + "s has been placed on back order for you.")
+            console.log("\n\nCongratulations!!! Your order has been processed, your " + purchaseObject.qty + 
+            " x " + purchaseObject.dept + " " + purchaseObject.prod + "s are on back order for you.")
         }
     }
     else {
@@ -79,7 +79,10 @@ function ohYouLegend() {
     }
     else { //case for back order scenario where response is "Order all items requested"
         purchaseObject.persbo = parseInt(purchaseObject.qty - purchaseObject.inStock);
-        purchaseObject.totebo = purchaseObject.persbo + purchaseObject.back;
+        if (purchaseObject.persbo >= purchaseObject.back) {
+            purchaseObject.totebo = (purchaseObject.persbo - purchaseObject.back) + purchaseObject.back;
+        }
+        else purchaseObject.totebo = purchaseObject.back
         updateBackOrd();
         orderComplete();
         endConn();
