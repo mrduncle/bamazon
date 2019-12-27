@@ -1,5 +1,7 @@
 let inquirer = require("inquirer");
 let mySQL = require("mysql");
+let purchaseObject = {};
+// let qtyBackOrder;
 
 let connection = mySQL.createConnection({
     host: "localhost",
@@ -12,82 +14,98 @@ let connection = mySQL.createConnection({
 function endConn() {
     connection.end(function(err){
         if (err) throw err;
-        console.log("MySQL connection closed.")
+        console.log("\n\nMySQL connection closed.")
         //end connection to MySQL
     })
 }
 
-function ohYouLegend(orderQuants, orderData, dbData) {
-    if (orderQuants.buy === "Order" || orderQuants.buy === "Order items in stock only") {
+function updateBackOrd() {
+    connection.query("UPDATE products SET stockqty = 0, backorder = ? WHERE visproductID = ?", [purchaseObject.totebo, purchaseObject.prodID],
+        function(error, results) {
+            if (error) throw error;
+        })
+}
+
+function orderComplete() {
+   if (purchaseObject.direct === "Order" || purchaseObject.direct === "Order items in stock only") {
+        if (purchaseObject.qty === 1) {
+        console.log("\n\nCongratulations!!! Your order has been processed, you will shortly receive " + purchaseObject.qty + 
+        " x " + purchaseObject.dept + " " + purchaseObject.prod + ".");
+        }
+        else {
+            console.log("\n\nCongratulations!!! Your order has been processed, you will shortly receive " + purchaseObject.qty + 
+        " x " + purchaseObject.dept + " " + purchaseObject.prod + "s.");
+        }
+    }
+    else if (purchaseObject.inStock === 0) {
+        if (purchaseObject.qty === 1) {
+            console.log("\n\nCongratulations!!! Your order has been processed, your request of " + purchaseObject.qty + 
+            " x " + purchaseObject.dept + " " + purchaseObject.prod + " has been placed on back order for you.")
+        }
+        else {
+            console.log("\n\nCongratulations!!! Your order has been processed, your request of " + purchaseObject.qty + 
+            " x " + purchaseObject.dept + " " + purchaseObject.prod + "s has been placed on back order for you.")
+        }
+    }
+    else {
+        if (purchaseObject.qty === 1) {
+            console.log("\n\nCongratulations!!! Your order has been processed, you will shortly receive " + purchaseObject.inStock + 
+            " x " + purchaseObject.dept + " " + purchaseObject.prod + ". " + purchaseObject.persbo + " additional " + 
+            purchaseObject.dept + " " + purchaseObject.prod + " are on back order for you.")
+        }
+        else {
+            console.log("\n\nCongratulations!!! Your order has been processed, you will shortly receive " + purchaseObject.inStock + 
+            " x " + purchaseObject.dept + " " + purchaseObject.prod + "s. " + purchaseObject.persbo + " additional " + 
+            purchaseObject.dept + " " + purchaseObject.prod + "s are on back order for you.")
+        }
+    }  
+}
+
+function ohYouLegend() {
+    // console.log("start of ohYouLegend orderQuants: " + orderQuants.buy);
+    if (purchaseObject.direct === "Order" || purchaseObject.direct === "Order items in stock only") {
         //if the order quantity exceeds the stock but the user has driven execution to this location then they  
         //have opted to just purchase what is available in stock so the orderData variable must be adjusted
-        if (orderData[1] > dbData[0].stockqty) {
-            orderData[1] = dbData[0].stockqty;
+        if (purchaseObject.qty > purchaseObject.inStock) {
+            purchaseObject.qty = purchaseObject.inStock;
         }
-        let qtyRemain = parseInt(dbData[0].stockqty - orderData[1])
-        connection.query("UPDATE products SET stockqty = ? WHERE visproductID = ?", [qtyRemain, orderData[0]], 
+        purchaseObject.remStk = parseInt(purchaseObject.inStock - purchaseObject.qty);
+        connection.query("UPDATE products SET stockqty = ? WHERE visproductID = ?", [purchaseObject.remStk, purchaseObject.prodID], 
             function(error, results) {
                 if (error) throw error;
-                connection.query("SELECT departmentname, productname FROM products WHERE visproductID = ?", [orderData[0]],
-                    function(error, rows, fields) {
-                        if (error) throw error;
-                        console.log(rows);
-                        console.log("Congratulations!!! Your order has been processed, you will shortly receive " + orderData[1] + 
-                            " x " + rows[0].departmentname + " " + rows[0].productname + ".")
-                })
-                //console.log(results);
-            endConn();
+                orderComplete();
+                endConn();
         })
     }
     else { //case for back order scenario where response is "Order all items requested"
-        let qtyBackOrder = 0;
-        connection.query("SELECT backorder FROM products WHERE visproductID = ?", [orderData[0]], 
-            function(error, rows, fields) {
-            console.log(qtyBackOrder)
-            console.log("Backorder value: " + rows);
-            console.log("Backorder value: " + rows[0].backorder);
-            //output from queries to the database are of the form [ RowDataPacket { backorder: 0} ]
-            if (rows[0].backorder === null) {
-                rows[0].backorder = 0;
-                console.log("dbData[0].backorder: " + rows[0].backorder);
-                console.log("orderData[1]: " + orderData[1]);
-                console.log("dbData[0].stockqty: " + dbData[0].stockqty);
-                
-            }
-            qtyBackOrder = parseInt(orderData[1] + rows[0].backorder - dbData[0].stockqty);
-            console.log("qtyBackOrder: " + qtyBackOrder);
-
-        })
-        console.log("qtyBackOrder: " + qtyBackOrder);
-        connection.query("UPDATE products SET stockqty = 0, backorder = ? WHERE visproductID = ?", [qtyBackOrder, orderData[0]],
-            function(error, results) {
-                if (error) throw error;
-                console.log(results);
-                endConn();
-        })
+        purchaseObject.persbo = parseInt(purchaseObject.qty - purchaseObject.inStock);
+        purchaseObject.totebo = purchaseObject.persbo + purchaseObject.back;
+        updateBackOrd();
+        orderComplete();
+        endConn();
     }
    
 }
 
-function partAvail(orderData, stockData) {
+function partAvail() {
     inquirer
         .prompt([
             {
                 type: "list",
                 name: "buy",
-                message: "\n\nWe can only supply " + stockData[0].stockqty + " now with " +
-                    parseInt(orderData[1] - stockData[0].stockqty) + " on back order.\nThe " +
-                    "price for currently stocked items is $" + parseInt(stockData[0].stockqty * stockData[0].price) +
-                    ".00 with $" + parseInt((orderData[1] - stockData[0].stockqty) * stockData[0].price) + ".00 due when " +
-                    "you receive back ordered items. How do you wish to proceed?",
+                message: "\n\nThere are " + purchaseObject.inStock + " in stock now with " +
+                    "an existing back order of " + purchaseObject.back + ".\nThe " +
+                    "price for currently stocked items is $" + parseInt(purchaseObject.inStock * purchaseObject.price) +
+                    ".00 with $" + parseInt((purchaseObject.qty - purchaseObject.inStock) * purchaseObject.price) + ".00 " + 
+                    "due when you receive your back ordered items. \nHow do you wish to proceed?",
                 choices: ["Order items in stock only", "Order all items requested", "Cancel order"],
                 default: "Order items in stock only"
             }
         ])
         .then (answers => {
-            console.log(answers);
-            if (answers.buy === "Order items in stock only" || answers.buy === "Order all items requested") {
-                ohYouLegend(answers, orderData, stockData);
+            purchaseObject.direct = answers.buy
+            if (purchaseObject.direct === "Order items in stock only" || purchaseObject.direct === "Order all items requested") {
+                ohYouLegend();
             }
             else {
                 qnAreYouLame();
@@ -95,24 +113,24 @@ function partAvail(orderData, stockData) {
         })
 }
 
-function noneAvail(orderData, stockData) {
+function noneAvail() {
     inquirer
         .prompt([
             {
                 type:"list",
                 name: "buy",
-                message: "\n\nThere are currently none of those products in stock and " + orderData[1] +
-                    " on back order.\nThe price for back ordered items is $" + 
-                    parseInt(orderData[1] * stockData[0].price) + ".00 due when you receive back \nordered items. " +
+                message: "\n\nThere are currently none of those products in stock and " + purchaseObject.back +
+                    " on back order.\nThe price for your back ordered items is $" + 
+                    parseInt(purchaseObject.qty * purchaseObject.price) + ".00 due when you receive back \nthem. " +
                     "How do you wish to proceed?",
                 choices: ["Order all items requested", "Cancel order" ],
                 default: "Order all items requested"
             }
         ])
         .then (answers => {
-            console.log(answers);
-            if (answers.buy === "Order all items requested") {
-                ohYouLegend(answers, orderData, stockData);
+            purchaseObject.direct = answers.buy
+            if (purchaseObject.direct === "Order all items requested") {
+                ohYouLegend();
             }
             else {
                 qnAreYouLame();
@@ -125,14 +143,15 @@ function qnAreYouLame() {
         .prompt([
             {
                 type: "list",
-                name:"\n\nIs there another product you might be interested in?",
+                name: "lameorno",
+                message:"\n\nIs there another product you might be interested in?",
                 choices: ["Yes", "No"],
                 default: "Yes"
             }
         ])
         .then (answers => {
-            console.log(answers);
-            if (answers === "Yes") {
+            purchaseObject.direct = answers.lameorno;
+            if (purchaseObject.direct === "Yes") {
                 showProducts();
             }
             else {
@@ -143,21 +162,23 @@ function qnAreYouLame() {
         })
 }
 
-function allInStock(orderData, stockData) {
+function allInStock() {
     inquirer
         .prompt([
             {
                 type: "list",
                 name: "buy",
-                message: "\n\nYour order can be filled now for $" + orderData[1] * stockData[0].price + 
+                message: "\n\nYour order can be filled now for $" + purchaseObject.qty * purchaseObject.price + 
                     ". How do you wish to proceed?",
                 choices: ["Order", "Cancel order"],
                 default: "Order"
             }
         ])
         .then (answers => {
-            if (answers.buy === "Order") {
-                ohYouLegend(answers, orderData, stockData);
+            purchaseObject.direct = answers.buy;
+            if (purchaseObject.direct === "Order") {
+                
+                ohYouLegend();
             }
             else {
                 qnAreYouLame();
@@ -165,54 +186,17 @@ function allInStock(orderData, stockData) {
         })
 }
 
-function checkDB(orderData) {
-    connection.query("SELECT price, stockqty FROM products WHERE visproductID = ?", orderData[0], function (err, rows, fields) {
-        if(err) throw err;
-        //output from queries to the database are of the form [ RowDataPacket { price: 1200, stockqty: 0 } ]
-        //stock is available to cover the order
-        if (orderData[1] <= rows[0].stockqty) {
-            allInStock(orderData, rows);  
-        }
-        //there is no stock left
-        else if (rows[0].stockqty === 0) {
-            noneAvail(orderData, rows);
-        }  
-        else {//order exceeds current amount of stock and stock is not zero
-            partAvail(orderData, rows);
-        }
-    })
-}
-
-function whatBoat(boatID, purpose, answer1, orderData=[0,1]) {
-    console.log(boatID);
-    console.log(typeof(parseInt(boatID)));
-    connection.query("SELECT departmentname, productname FROM products WHERE visproductID = ?", [parseInt(boatID)],
-        function(error, rows, fields) {
-            if (error) throw error;
-            if (purpose === "purch") {  //for querying how many of a particular boat are to be purchased
-                inquirer
-                .prompt([
-                    {
-                        name: "quantity",
-                        //output from queries to the database are of the form [ RowDataPacket { departmentname: 'Pyranha', productname: 'Nano M' } ]
-                        message: "\n\nHow many " + rows[0].departmentname + " " + rows[0].productname + "s would you like to buy: "
-                    }
-                ])
-                .then(answer2 => {
-                    //output from the inquirer responses are of the form { quantity: '2' }
-                    let answers = [answer1.product, answer2.quantity];
-                    checkDB(answers);
-                })
-                console.log("whatBoat department: " + rows[0].departmentname);
-                console.log("whatBoat product: " + rows[0].productname);
-            }
-            else {  //for advising the order for the particular boat has been successful
-                //output from queries to the database are of the form [ RowDataPacket { departmentname: 'Pyranha', productname: 'Nano M' } ]
-                console.log("Congratulations your order has been processed, you will shortly receive " + orderData[1] + 
-                    " x " + rows[0].departmentname + " " + rows[0].productname)
-            }
-    })
-    
+function checkDB() {
+    if (purchaseObject.qty <= purchaseObject.inStock) {
+        allInStock();  
+    }
+    //there is no stock left
+    else if (purchaseObject.inStock === 0) {
+        noneAvail();
+    }  
+    else {//order exceeds current amount of stock and stock is not zero
+        partAvail();
+    }
 }
 
 function purchProd() {
@@ -225,22 +209,57 @@ function purchProd() {
             }
         ])
         .then(answer1 => {
-            connection.query("SELECT departmentname, productname FROM products WHERE visproductID = ?", [answer1.product],
+            purchaseObject.prodID = answer1.product;
+            connection.query("SELECT price, stockqty, backorder, departmentname, productname FROM products WHERE visproductID = ?", [purchaseObject.prodID],
             function(error, rows, fields) {
                 if (error) throw error;
-                inquirer
-                    .prompt([
-                        {
-                            name: "quantity",
-                            //output from queries to the database are of the form [ RowDataPacket { departmentname: 'Pyranha', productname: 'Nano M' } ]
-                            message: "\n\nHow many " + rows[0].departmentname + " " + rows[0].productname + "s would you like to buy: "
-                        }
-                    ])
-                    .then(answer2 => {
-                        //output from the inquirer responses are of the form { quantity: '2' }
-                        let answers = [answer1.product, answer2.quantity];
-                        checkDB(answers);
-                    })
+                if (!rows.length) {  //check for the case where no results were found from the nominated productID
+                    inquirer
+                        .prompt([
+                            {
+                                type: "list",
+                                name: "noResults",
+                                message: "\n\nYou have selected a productID of " + purchaseObject.prodID + " which has no matching record. \nDo you wish to try again?",
+                                choices: ["Yes", "No"],
+                                default: "Yes"
+                            }
+                        ])
+                        .then(answer => {
+                            if (answer.noResults === "Yes") showProducts();
+                            else {
+                                console.log("\n\nCome and see us again when you are ready to go " +
+                                    "paddling because right now you're being a whiny little bitch.");
+                                endConn();
+                            }
+                            
+                        })
+                }
+                else {  //productID yielded a matching record in the database
+                    purchaseObject.price = rows[0].price;
+                    purchaseObject.inStock = rows[0].stockqty;
+                    purchaseObject.dept = rows[0].departmentname;
+                    purchaseObject.prod = rows[0].productname;
+                    if (rows[0].backorder !== null) {
+                        purchaseObject.back = rows[0].backorder;
+                    }
+                    else {
+                        purchaseObject.back = 0; 
+                    }
+                    inquirer
+                        .prompt([
+                            {
+                                name: "quantity",
+                                //output from queries to the database are of the form [ RowDataPacket { departmentname: 'Pyranha', productname: 'Nano M' } ]
+                                message: "\n\nHow many " + purchaseObject.dept + " " + purchaseObject.prod + "s would you like to buy: "
+                            }
+                        ])
+                        .then(answer2 => {
+                            //output from the inquirer responses are of the form { quantity: '2' }
+                            purchaseObject.qty = answer2.quantity;
+                            // let answers = [answer1.product, answer2.quantity];
+                            checkDB();
+                        })
+                }
             })
         })     
 }
@@ -277,7 +296,7 @@ function dbConnection() {
 }
 
 function showProducts() {
-    dbConnection();
+    purchaseObject = {};
     connection.query("SELECT visproductID as productID, productname, departmentname, price, " +
         "stockqty FROM products", function (error, rows, fields) {
         if(error) throw error;
@@ -288,6 +307,6 @@ function showProducts() {
         queryPurchase();
     })
 }
-
+dbConnection();
 showProducts();
 
