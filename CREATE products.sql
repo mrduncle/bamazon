@@ -1,4 +1,4 @@
-CREATE TABLE `products` (
+ALTER TABLE `products` (
   `productID` int(11) NOT NULL AUTO_INCREMENT,
   `visproductID` int(11) NOT NULL,
   `productname` varchar(150) NOT NULL,
@@ -6,6 +6,7 @@ CREATE TABLE `products` (
   `price` decimal(8,2) NOT NULL,
   `stockqty` int(11) NOT NULL,
   `backorder` int(11) DEFAULT NULL,
+  `productsales` int(11) DEFAULT NULL,
   PRIMARY KEY (`productID`),
   UNIQUE KEY `productID_UNIQUE` (`productID`),
   UNIQUE KEY `productname_UNIQUE` (`productname`)

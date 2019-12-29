@@ -1,7 +1,6 @@
 let inquirer = require("inquirer");
 let mySQL = require("mysql");
 let purchaseObject = {};
-// let qtyBackOrder;
 
 let connection = mySQL.createConnection({
     host: "localhost",
@@ -276,7 +275,7 @@ function queryPurchase() {
                 message: "\nWould you like to purchase any of the products displayed?",
                 choices: ["yes", "no"],
                 default: "yes"
-            },
+            }
         ])
         .then(answers => {
             console.info("Answer:", answers.purchaseProduct);
@@ -310,6 +309,7 @@ function showProducts() {
         queryPurchase();
     })
 }
+
 dbConnection();
 showProducts();
 
