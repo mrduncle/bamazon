@@ -106,8 +106,8 @@ function partAvail() {
                 name: "buy",
                 message: "\n\nThere are " + purchaseObject.inStock + " in stock now with " +
                     "an existing back order of " + purchaseObject.back + ".\nThe " +
-                    "price for currently stocked items is $" + parseInt(purchaseObject.inStock * purchaseObject.price) +
-                    ".00 with $" + parseInt((purchaseObject.qty - purchaseObject.inStock) * purchaseObject.price) + ".00 " + 
+                    "price for the entire order is $" + parseInt(purchaseObject.inStock * purchaseObject.price) +
+                    ".00. with $" + parseInt((purchaseObject.qty - purchaseObject.inStock) * purchaseObject.price) + ".00 " + 
                     "due when you receive your back ordered items. \nHow do you wish to proceed?",
                 choices: ["Order items in stock only", "Order all items requested", "Cancel order"],
                 default: "Order items in stock only"
@@ -208,18 +208,18 @@ function checkDB() {
 }
 function assignData(data) {
     console.log(data);
-    purchaseObject.price = rows[0].price;
-    purchaseObject.inStock = rows[0].stockqty;
-    purchaseObject.dept = rows[0].departmentname;
-    purchaseObject.prod = rows[0].productname;
-    if (rows[0].productsales !== null) {
-        purchaseObject.prodSales = rows[0].productsales;
+    purchaseObject.price = data[0].price;
+    purchaseObject.inStock = data[0].stockqty;
+    purchaseObject.dept = data[0].departmentname;
+    purchaseObject.prod = data[0].productname;
+    if (data[0].productsales !== null) {
+        purchaseObject.prodSales = data[0].productsales;
     }
     else {
         purchaseObject.prodSales = 0;
     }
-    if (rows[0].backorder !== null) {
-        purchaseObject.back = rows[0].backorder;
+    if (data[0].backorder !== null) {
+        purchaseObject.back = data[0].backorder;
     }
     else {
         purchaseObject.back = 0; 
@@ -232,7 +232,7 @@ function assignData(data) {
                     //output from queries to the database are of the form [ RowDataPacket { departmentname: 'Pyranha', productname: 'Nano M' } ]
                     message: "\n\nHow many " + purchaseObject.dept + " " + purchaseObject.prod + "s would you like to buy: ",
                     validate: function (value) {
-                        if (isNaN(value)) {
+                        if (isNaN(value) || value === "") {
                             return "Please enter a valid number for the quantity you wish to buy.";
                         }
                         else {
@@ -260,7 +260,8 @@ function purchProd() {
         ])
         .then(answer1 => {
             purchaseObject.prodID = answer1.product;
-            connection.query("SELECT price, stockqty, backorder, departmentname, productname, productsales FROM products WHERE visproductID = ?", [purchaseObject.prodID],
+            connection.query("SELECT price, stockqty, backorder, departmentname, productname, " +
+            "productsales FROM products WHERE visproductID = ?", [purchaseObject.prodID],
             function(error, rows, fields) {
                 if (error) throw error;
                 if (!rows.length) {  //check for the case where no results were found from the nominated productID
@@ -269,7 +270,8 @@ function purchProd() {
                             {
                                 type: "list",
                                 name: "noResults",
-                                message: "\n\nYou have selected a productID of " + purchaseObject.prodID + " which has no matching record.\nDo you wish to try again?",
+                                message: "\n\nYou have selected a productID of " + purchaseObject.prodID + 
+                                    " which has no matching record.\nDo you wish to try again?",
                                 choices: ["Yes", "No"],
                                 default: "Yes"
                             }
