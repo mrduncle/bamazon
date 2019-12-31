@@ -6,9 +6,6 @@ let addInvent = [];
 let newProd = [];
 let deptNames = [];
 
-// let purchaseObject = {};
-// let qtyBackOrder;
-
 let connection = mySQL.createConnection({
     host: "localhost",
     port: 3306,
@@ -20,9 +17,27 @@ let connection = mySQL.createConnection({
 function endConn() {
     connection.end(function(err){
         if (err) throw err;
-        console.log("\n\nMySQL connection closed.");
         //end connection to MySQL
+        console.log("\n\nMySQL connection closed.");
     })  
+}
+
+function nextTask() {
+    inquirer
+        .prompt ([
+            {
+                type: "list",
+                name: "nextStep",
+                message: "\n\nWhat would you like to do then?\n\n",
+                choices: ["Re-enter the record", "Go back to the main menu", "Exit entirely"],
+                default: "Re-enter the record"
+            },
+        ])
+        .then( answers => {
+            if (answers.nextStep === "Re-enter the record") newProductEntry();
+            else if (answers.nextStep === "Go back to the main menu") displayOptions();
+            else endConn();
+        })
 }
 
 function addVisProdID(visID) {
@@ -31,25 +46,25 @@ function addVisProdID(visID) {
         [parseInt(visID - 1), parseInt(visID)], function (err, results) {
             if (err) throw err;
             console.log("\n\nYour new record has been entered into the database.");
-            endConn();
+            whatNext();
     })
 }
 
 function addProduct() {
     //create the new record by inserting the compulsory fields 
     connection.query("INSERT INTO products (productname, departmentname, price, stockqty, backorder) " + 
-                     "VALUES ('" +
-                     newProd[0] + 
-                     "', '" + newProd[1] + 
-                     "', " + newProd[2] +
-                     ", " + newProd[3] +
-                     ", " + newProd[4] + ")", function(err, rows) {
-                         if (err) throw err;
-                         //get the auto generated ID of the inserted record
-                         connection.query("SELECT LAST_INSERT_ID()", function(err, results){
-                            if (err) throw err;
-                            addVisProdID(results[0]["LAST_INSERT_ID()"]);
-                     })
+        "VALUES ('" +
+        newProd[0] + 
+        "', '" + newProd[1] + 
+        "', " + newProd[2] +
+        ", " + newProd[3] +
+        ", " + newProd[4] + ")", function(err, rows) {
+            if (err) throw err;
+            //get the auto generated ID of the inserted record
+            connection.query("SELECT LAST_INSERT_ID()", function(err, results){
+            if (err) throw err;
+            addVisProdID(results[0]["LAST_INSERT_ID()"]);
+            })
     })
 }
 
@@ -65,7 +80,7 @@ function checkProd() {
                 "\n====================================");
     inquirer
         .prompt ([
-            {
+            {  //user happy for the INSERT to proceed
                 type: "list",
                 name: "recordOk",
                 message: "\n\nAre you happy with the details of the entry?",
@@ -75,25 +90,9 @@ function checkProd() {
         ])
         .then(answers => {
             if(answers.recordOk === "Yes") {
-                addProduct();
+                addProduct(); //INSERT the new product into the database
             }
-            else {
-                inquirer
-                    .prompt ([
-                        {
-                            type: "list",
-                            name: "nextStep",
-                            message: "\n\nWhat would you like to do then?\n\n",
-                            choices: ["Re-enter the record", "Go back to the main menu", "Exit entirely"],
-                            default: "Re-enter the record"
-                        },
-                    ])
-                    .then( answers => {
-                        if (answers.nextStep === "Re-enter the record") newProductEntry();
-                        else if (answers.nextStep === "Go back to the main menu") displayOptions();
-                        else endConn();
-                    })
-            }
+            else nextTask()  //query what the user wants to do       
         })
 }
 
@@ -108,12 +107,12 @@ function chkPrices(descriptor) {
                 choices: ["Yes", "No"],
                 default: "Yes"
             },
-            {
+            {  //this question only exposed to the user when the users responds in the affirmative to adjusting the price
                 type: "input",
                 name: "newPrice",
                 message: "\n\nWhat is the new price?",
-                when: (answers) => answers.valueOut === "Yes",
-                validate: function (value) {
+                when: (answers) => answers.valueOut === "Yes", //this question only asked when the response from the above is yes
+                validate: function (value) { //validate for non-numerical and empty entries
                     if (isNaN(value) || value === "") {
                         return "Please enter a valid price.";
                     }
@@ -141,11 +140,11 @@ function newProductEntry() {
 
     inquirer
         .prompt([
-            {
+            {  //product name
                 type: "input",
                 name: "product",
                 message: "\nWhat is the name of the new product?",
-                validate: function (value) {
+                validate: function (value) { //validate empty entries
                     if (value !== "") {
                         return true;
                     }
@@ -154,29 +153,29 @@ function newProductEntry() {
                     }
                 }
             },
-            {
+            {  //department
                 type: "list",
                 name: "department",
                 message: "\nPlease choose which department the new product belongs to.",
                 choices: deptNames,
                 default: "Pyranha"
             },
-            {
+            {  //price
                 type: "input",
                 name: "price",
                 message: priceMsg,
-                validate: function (value) {
+                validate: function (value) { //validate for non-numerical and empty entries
                     if (isNaN(value) || value === "") {
                         return "Please enter a valid price.";
                     }
                     else return true;
                 }
             },
-            {
+            {  //current stock of new product
                 type: "input",
                 name: "stock",
                 message: stockMsg,
-                validate: function (value) {
+                validate: function (value) { //validate for non-numerical and empty entries
                     if (isNaN(value) || value === "") {
                         return "Please enter a valid number for the stock quantity.";
                     }
@@ -185,11 +184,11 @@ function newProductEntry() {
                     }
                 }
             },
-            {
+            {  //back order quantity of new product
                 type: "input",
                 name: "backorder",
                 message: backOrdMsg,
-                validate: function (value) {
+                validate: function (value) { //validate for non-numerical and empty entries
                     if (isNaN(value) || value === "") {
                         return "Please enter a valid number for the back order quantity.";
                     }
@@ -203,6 +202,7 @@ function newProductEntry() {
             newProd = [answers.product, answers.department
                        ,answers.price, answers.stock
                        ,answers.backorder];
+            //check for prices outside a normally expected range
             let descriptor;
             if (newProd[2] < 700) {
                 descriptor = "low";
@@ -212,14 +212,14 @@ function newProductEntry() {
                 descriptor = "high";
                 chkPrices(descriptor);
             }
-            else { 
+            else { //within normal range do final check of entered data
                 checkProd();
             }
         })
 }
 
 function prepNewProd() {
-    //obtain all the data from the database necessary for new product
+    //obtain all the data from the database necessary for adding a new product
     connection.query("SELECT DISTINCT departmentname FROM products",
     function(err, rows) {
         if (err) throw err;
@@ -279,7 +279,9 @@ function backOrder(qty) {
 
 function prepNo(qty) {
     //check if the increase in inventory entered by the user is valid
+    //find the quantity currently in stock for the product addInvent.productupdate
     addInvent.quantity = addInvent.products.find(obj => obj.product === addInvent.productupdate).quantity + parseInt(qty);
+    //find the current back order quantity for the product addInvent.productupdate
     addInvent.back = addInvent.products.find(obj => obj.product === addInvent.productupdate).backorder;
     if (addInvent.back === null) addInvent.back = 0;
     if (parseInt(qty) !== addInvent.back) {
@@ -296,11 +298,11 @@ function prepNo(qty) {
                 }
             ])
             .then(answers => { 
-                if (answers.checkqty === "No") { //mismatch is not okay ask for data re-entry
+                if (answers.checkqty === "No") { //user has decided mismatch is not okay ask for data re-entry
                     console.log("\n\nPlease re-enter the correct number of units to add to inventory for " + addInvent.productupdate + ".")
                     howMany();
                 }
-                else { //mismatch is okay
+                else { //user has decided mismatch is okay
                     backOrder(qty);
                 }
             })
@@ -318,7 +320,7 @@ function howMany() {
             {
                 name:"addinventqty",
                 message: "\n\nHow many additional units do you wish to add?",
-                validate: function (value) {
+                validate: function (value) {  //validate for non-numerical and empty entries
                     if (isNaN(value) || value === "") {
                         return "Please enter a valid number for the additional units."
                     }
@@ -327,14 +329,13 @@ function howMany() {
             }
         ])
         .then(answers => {
-            // checkValidNo(answers.addinventqty);
             prepNo(answers.addinventqty)
         })           
 } 
     
 
 function whichProduct() {
-    //ask which product the user wishes to update
+    //ask which product the user wishes to update from the array obtained in prepInvent()
     inquirer
         .prompt([
             {
@@ -352,7 +353,7 @@ function whichProduct() {
 }
 
 function prepInvent() {
-    //obtain all the data from the database necessary for the update
+    //obtain all the data from the database necessary for the inventory update
     connection.query("SELECT productname, stockqty, backorder FROM products",
     function(err, rows) {
         if (err) throw err;
@@ -365,6 +366,7 @@ function prepInvent() {
                                     })
         });
         //from the array of objects collect into a single array the product name of each object
+        //for use in whichProduct()
         addInvent.productnames = addInvent.products.map(prod => prod.product);
         whichProduct();
     });
@@ -372,21 +374,39 @@ function prepInvent() {
 
 function displayLowInvent() {
     //display all products with a stockqty less than 5
-    connection.query("SELECT productID, productname, price, stockqty, backorder FROM products " +
-        "WHERE stockqty < ?", 5, function(err, rows, fields) {
+    connection.query("SELECT productID, departmentname, productname, price, stockqty, backorder FROM products " +
+        "WHERE stockqty < ? ORDER BY departmentname", 5, function(err, rows, fields) {
             if (err) throw err;
             console.table(rows);
-            endConn();
+            whatNext();
+        })
+}
+
+function whatNext() {
+    inquirer
+        .prompt ([
+            {
+                type: "list",
+                name: "nextStep",
+                message: "\n\nWhat would you like to do now?\n",
+                choices: ["Go back to the main menu", "Exit entirely"],
+                default: "Exit entirely"
+            },
+        ])
+        .then( answers => {
+            if (answers.nextStep === "Go back to the main menu") displayOptions();
+            else endConn();
         })
 }
 
 function displayProducts() {
     //display all products
-    connection.query("SELECT productID, productname, price, stockqty, backorder FROM products",
+    connection.query("SELECT productID, departmentname, productname, price, stockqty, " +
+        "backorder FROM products ORDER BY departmentname",
         function(err, rows, fields) {
             if (err) throw err;
             console.table(rows);
-            endConn();
+            whatNext();
     })
 }
 
@@ -397,7 +417,7 @@ function displayOptions() {
             {
                 type: "list",
                 name: "mgrOptions",
-                message: "Which of the following would you like to do?",
+                message: "\nWhich of the following would you like to do?",
                 choices: ["View products for sale"
                          ,"View low inventory"
                          ,"Add to inventory"
