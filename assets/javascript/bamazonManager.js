@@ -1,3 +1,5 @@
+//@ts-check
+
 let inquirer = require("inquirer");
 let mySQL = require("mysql");
 let addInvent = [];
@@ -28,19 +30,13 @@ function addVisProdID(visID) {
     connection.query("UPDATE products SET visproductID = ? WHERE productID = ?",
         [parseInt(visID - 1), parseInt(visID)], function (err, results) {
             if (err) throw err;
-            console.log("Your new record has been entered into the database.");
+            console.log("\n\nYour new record has been entered into the database.");
+            endConn();
     })
 }
 
 function addProduct() {
     //create the new record by inserting the compulsory fields 
-    console.log("INSERT INTO products (productname, departmentname, price, stockqty, backorder) " + 
-    "VALUES (" +
-    newProd[0] + 
-    ", " + newProd[1] + 
-    ", " + newProd[2] +
-    ", " + newProd[3] +
-    ", " + newProd[4] + ")");
     connection.query("INSERT INTO products (productname, departmentname, price, stockqty, backorder) " + 
                      "VALUES ('" +
                      newProd[0] + 
@@ -60,38 +56,103 @@ function addProduct() {
 function checkProd() {
     //ask the user to confirm their data entry
     console.log("\n\nYou have entered the following information for the new record: " +
+                "\n====================================" +
                 "\nProduct Name: " + newProd[0] + 
                 "\nDepartment Name: " + newProd[1] + 
                 "\nPrice: " + newProd[2] +
                 "\nStock Quantity: " + newProd[3] + 
-                "\nBack Order: " + newProd[4]);
+                "\nBack Order: " + newProd[4] + 
+                "\n====================================");
     inquirer
         .prompt ([
             {
                 type: "list",
                 name: "recordOk",
-                message: "Are you happy with the details of the entry?",
+                message: "\n\nAre you happy with the details of the entry?",
                 choices: ["Yes", "No"],
                 default: "Yes"
-            }
+            },
         ])
         .then(answers => {
             if(answers.recordOk === "Yes") {
                 addProduct();
             }
             else {
-                newProductEntry();
+                inquirer
+                    .prompt ([
+                        {
+                            type: "list",
+                            name: "nextStep",
+                            message: "\n\nWhat would you like to do then?\n\n",
+                            choices: ["Re-enter the record", "Go back to the main menu", "Exit entirely"],
+                            default: "Re-enter the record"
+                        },
+                    ])
+                    .then( answers => {
+                        if (answers.nextStep === "Re-enter the record") newProductEntry();
+                        else if (answers.nextStep === "Go back to the main menu") displayOptions();
+                        else endConn();
+                    })
             }
         })
 }
 
-function newProductEntry() {
-    //have the user enter data for the new record
+function chkPrices(descriptor) {
+    //confirm that the entered price is not out of the normally expected range
     inquirer
         .prompt([
             {
+                type: "list",
+                name: "valueOut",
+                message: "\n\nYour price of $" + newProd[2] + " per unit seems a little " + descriptor + ". Do you wish to adjust it?",
+                choices: ["Yes", "No"],
+                default: "Yes"
+            },
+            {
+                type: "input",
+                name: "newPrice",
+                message: "\n\nWhat is the new price?",
+                when: (answers) => answers.valueOut === "Yes",
+                validate: function (value) {
+                    if (isNaN(value) || value === "") {
+                        return "Please enter a valid price.";
+                    }
+                    else {
+                        return true;
+                    }
+                }
+            }
+        ]).then(answers => {
+            if (answers.valueOut === "Yes") {
+                newProd[2] = answers.newPrice;
+            }
+            checkProd();
+            
+        })
+
+    
+}
+
+function newProductEntry() {
+    //have the user enter data for the new record
+    let priceMsg = "\nWhat price is this product to be sold for?";
+    let stockMsg = "\nHow many of this new product are in stock?";
+    let backOrdMsg = "\nHow many of this product are on back order?";
+
+    inquirer
+        .prompt([
+            {
+                type: "input",
                 name: "product",
-                message: "\nWhat is the name of the new product?"
+                message: "\nWhat is the name of the new product?",
+                validate: function (value) {
+                    if (value !== "") {
+                        return true;
+                    }
+                    else{
+                        return "Please enter a product name."
+                    }
+                }
             },
             {
                 type: "list",
@@ -101,23 +162,59 @@ function newProductEntry() {
                 default: "Pyranha"
             },
             {
+                type: "input",
                 name: "price",
-                message: "\nWhat price is this product to be sold for?"
+                message: priceMsg,
+                validate: function (value) {
+                    if (isNaN(value) || value === "") {
+                        return "Please enter a valid price.";
+                    }
+                    else return true;
+                }
             },
             {
+                type: "input",
                 name: "stock",
-                message: "\nHow many of this new product are in stock?"
+                message: stockMsg,
+                validate: function (value) {
+                    if (isNaN(value) || value === "") {
+                        return "Please enter a valid number for the stock quantity.";
+                    }
+                    else {
+                        return true;
+                    }
+                }
             },
             {
+                type: "input",
                 name: "backorder",
-                message: "\nHow many of this product are on back order?"
+                message: backOrdMsg,
+                validate: function (value) {
+                    if (isNaN(value) || value === "") {
+                        return "Please enter a valid number for the back order quantity.";
+                    }
+                    else {
+                        return true;
+                    }
+                }
             }
         ])
-        .then(answers => {
+        .then(answers => {   
             newProd = [answers.product, answers.department
                        ,answers.price, answers.stock
                        ,answers.backorder];
-            checkProd();
+            let descriptor;
+            if (newProd[2] < 700) {
+                descriptor = "low";
+                chkPrices(descriptor);
+            }
+            else if (newProd[2] > 2000) {
+                descriptor = "high";
+                chkPrices(descriptor);
+            }
+            else { 
+                checkProd();
+            }
         })
 }
 
@@ -129,7 +226,6 @@ function prepNewProd() {
         rows.forEach(element => {
             deptNames.push(element.departmentname)
         })
-        console.log(deptNames);
         newProductEntry();
     })
 }
@@ -181,45 +277,39 @@ function backOrder(qty) {
     } 
 }
 
-function checkValidNo(qty) {
+function prepNo(qty) {
     //check if the increase in inventory entered by the user is valid
-    if (isNaN(qty)) { //is the data entered a number
-        console.log("\n\nPlease enter a valid number");
-        howMany();
+    addInvent.quantity = addInvent.products.find(obj => obj.product === addInvent.productupdate).quantity + parseInt(qty);
+    addInvent.back = addInvent.products.find(obj => obj.product === addInvent.productupdate).backorder;
+    if (addInvent.back === null) addInvent.back = 0;
+    if (parseInt(qty) !== addInvent.back) {
+        inquirer
+            .prompt([ //confirm if the mismatched new inventory quantity vs back order level is acceptable
+                {
+                    type: "list",
+                    name: "checkqty",
+                    message: "\n\nThere are " + addInvent.back + " units on back order for the " + addInvent.productupdate +
+                        " which\nis different from the " + qty + " units you nominated " + 
+                        "as the update\nquantity. Do you still wish to proceed?",
+                    choices: ["Yes", "No"],
+                    default: "Yes"
+                }
+            ])
+            .then(answers => { 
+                if (answers.checkqty === "No") { //mismatch is not okay ask for data re-entry
+                    console.log("\n\nPlease re-enter the correct number of units to add to inventory for " + addInvent.productupdate + ".")
+                    howMany();
+                }
+                else { //mismatch is okay
+                    backOrder(qty);
+                }
+            })
     }
-    else {
-        addInvent.quantity = addInvent.products.find(obj => obj.product === addInvent.productupdate).quantity + parseInt(qty);
-        addInvent.back = addInvent.products.find(obj => obj.product === addInvent.productupdate).backorder;
-        if (addInvent.back === null) addInvent.back = 0;
-        if (parseInt(qty) !== addInvent.back) {
-            inquirer
-                .prompt([ //confirm if the mismatched new inventory quantity vs back order level is acceptable
-                    {
-                        type: "list",
-                        name: "checkqty",
-                        message: "\n\nThere are " + addInvent.back + " units on back order for the " + addInvent.productupdate +
-                            " which\nis different from the " + qty + " units you nominated " + 
-                            "as the update\nquantity. Do you still wish to proceed?",
-                        choices: ["Yes", "No"],
-                        default: "Yes"
-                    }
-                ])
-                .then(answers => { 
-                    if (answers.checkqty === "No") { //mismatch is not okay ask for data re-entry
-                        console.log("\n\nPlease re-enter the correct number of units to add to inventory for " + addInvent.productupdate + ".")
-                        howMany();
-                    }
-                    else { //mismatch is okay
-                        backOrder(qty);
-                    }
-                })
-        }
-        else { //back order amount and new inventory quantity are equal
-            addInvent.back = parseInt(addInvent.back - qty);
-            addInventory();
-        }
-    }      
-}
+    else { //back order amount and new inventory quantity are equal
+        addInvent.back = parseInt(addInvent.back - qty);
+        addInventory();
+    }
+}      
 
 function howMany() {
     //ask the user how many additional units are to be added
@@ -227,11 +317,18 @@ function howMany() {
         .prompt([
             {
                 name:"addinventqty",
-                message: "\n\nHow many additional units do you wish to add?"
+                message: "\n\nHow many additional units do you wish to add?",
+                validate: function (value) {
+                    if (isNaN(value) || value === "") {
+                        return "Please enter a valid number for the additional units."
+                    }
+                    else return true;
+                }
             }
         ])
         .then(answers => {
-            checkValidNo(answers.addinventqty);
+            // checkValidNo(answers.addinventqty);
+            prepNo(answers.addinventqty)
         })           
 } 
     

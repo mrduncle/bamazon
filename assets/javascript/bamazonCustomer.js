@@ -1,3 +1,5 @@
+//@ts-check
+
 let inquirer = require("inquirer");
 let mySQL = require("mysql");
 let purchaseObject = {};
@@ -10,7 +12,14 @@ let connection = mySQL.createConnection({
     database: "bamazon"
 })
 
-function endConn() {
+function endConn(nature) {
+    if (nature === "wimp") {
+        console.log("\n\nCome and see us again when you are ready to go " +
+        "paddling\nbecause right now you're being a whiny little bitch.")
+    }
+    else{
+        console.log("\n\nYou are officialy a legend enjoy your new paddling tool.")
+    }
     connection.end(function(err){
         if (err) throw err;
         console.log("\n\nMySQL connection closed.")
@@ -73,7 +82,7 @@ function ohYouLegend() {
             function(error, results) {
                 if (error) throw error;
                 orderComplete();
-                endConn();
+                endConn("legend");
         })
     }
     else { //case for back order scenario where response is "Order all items requested"
@@ -84,7 +93,7 @@ function ohYouLegend() {
         else purchaseObject.totebo = purchaseObject.back
         updateBackOrd();
         orderComplete();
-        endConn();
+        endConn("legend");
     }
    
 }
@@ -157,9 +166,7 @@ function qnAreYouLame() {
                 showProducts();
             }
             else {
-                console.log("\n\nCome and see us again when you are ready to go " +
-                    "paddling because right now you're being a whiny little bitch.")
-                endConn();
+                endConn("wimp");
             }
         })
 }
@@ -179,7 +186,6 @@ function allInStock() {
         .then (answers => {
             purchaseObject.direct = answers.buy;
             if (purchaseObject.direct === "Order") {
-                
                 ohYouLegend();
             }
             else {
@@ -200,6 +206,48 @@ function checkDB() {
         partAvail();
     }
 }
+function assignData(data) {
+    console.log(data);
+    purchaseObject.price = rows[0].price;
+    purchaseObject.inStock = rows[0].stockqty;
+    purchaseObject.dept = rows[0].departmentname;
+    purchaseObject.prod = rows[0].productname;
+    if (rows[0].productsales !== null) {
+        purchaseObject.prodSales = rows[0].productsales;
+    }
+    else {
+        purchaseObject.prodSales = 0;
+    }
+    if (rows[0].backorder !== null) {
+        purchaseObject.back = rows[0].backorder;
+    }
+    else {
+        purchaseObject.back = 0; 
+    }
+    purchaseObject.qty = "";
+        inquirer
+            .prompt([
+                {
+                    name: "quantity",
+                    //output from queries to the database are of the form [ RowDataPacket { departmentname: 'Pyranha', productname: 'Nano M' } ]
+                    message: "\n\nHow many " + purchaseObject.dept + " " + purchaseObject.prod + "s would you like to buy: ",
+                    validate: function (value) {
+                        if (isNaN(value)) {
+                            return "Please enter a valid number for the quantity you wish to buy.";
+                        }
+                        else {
+                            return true;
+                        }
+                    } 
+                }
+            ])
+            .then(answers => {
+                //output from the inquirer responses are of the form { quantity: '2' }
+                purchaseObject.qty = answers.quantity;
+                checkDB();
+            })
+    }
+    
 
 function purchProd() {
     //function queries the user about which product they are interested in and how many they are after
@@ -212,7 +260,7 @@ function purchProd() {
         ])
         .then(answer1 => {
             purchaseObject.prodID = answer1.product;
-            connection.query("SELECT price, stockqty, backorder, departmentname, productname FROM products WHERE visproductID = ?", [purchaseObject.prodID],
+            connection.query("SELECT price, stockqty, backorder, departmentname, productname, productsales FROM products WHERE visproductID = ?", [purchaseObject.prodID],
             function(error, rows, fields) {
                 if (error) throw error;
                 if (!rows.length) {  //check for the case where no results were found from the nominated productID
@@ -221,7 +269,7 @@ function purchProd() {
                             {
                                 type: "list",
                                 name: "noResults",
-                                message: "\n\nYou have selected a productID of " + purchaseObject.prodID + " which has no matching record. \nDo you wish to try again?",
+                                message: "\n\nYou have selected a productID of " + purchaseObject.prodID + " which has no matching record.\nDo you wish to try again?",
                                 choices: ["Yes", "No"],
                                 default: "Yes"
                             }
@@ -229,38 +277,43 @@ function purchProd() {
                         .then(answer => {
                             if (answer.noResults === "Yes") showProducts();
                             else {
-                                console.log("\n\nCome and see us again when you are ready to go " +
-                                    "paddling because right now you're being a whiny little bitch.");
-                                endConn();
+                                endConn("wimp");
                             }
                             
                         })
                 }
                 else {  //productID yielded a matching record in the database
-                    purchaseObject.price = rows[0].price;
-                    purchaseObject.inStock = rows[0].stockqty;
-                    purchaseObject.dept = rows[0].departmentname;
-                    purchaseObject.prod = rows[0].productname;
-                    if (rows[0].backorder !== null) {
-                        purchaseObject.back = rows[0].backorder;
-                    }
-                    else {
-                        purchaseObject.back = 0; 
-                    }
-                    inquirer
-                        .prompt([
-                            {
-                                name: "quantity",
-                                //output from queries to the database are of the form [ RowDataPacket { departmentname: 'Pyranha', productname: 'Nano M' } ]
-                                message: "\n\nHow many " + purchaseObject.dept + " " + purchaseObject.prod + "s would you like to buy: "
-                            }
-                        ])
-                        .then(answer2 => {
-                            //output from the inquirer responses are of the form { quantity: '2' }
-                            purchaseObject.qty = answer2.quantity;
-                            // let answers = [answer1.product, answer2.quantity];
-                            checkDB();
-                        })
+                    assignData(rows)
+                    // purchaseObject.price = rows[0].price;
+                    // purchaseObject.inStock = rows[0].stockqty;
+                    // purchaseObject.dept = rows[0].departmentname;
+                    // purchaseObject.prod = rows[0].productname;
+                    // if (rows[0].productsales !== null) {
+                    //     purchaseObject.prodSales = rows[0].productsales;
+                    // }
+                    // else {
+                    //     purchaseObject.prodSales = 0;
+                    // }
+                    // if (rows[0].backorder !== null) {
+                    //     purchaseObject.back = rows[0].backorder;
+                    // }
+                    // else {
+                    //     purchaseObject.back = 0; 
+                    // }
+                    // inquirer
+                    //     .prompt([
+                    //         {
+                    //             name: "quantity",
+                    //             //output from queries to the database are of the form [ RowDataPacket { departmentname: 'Pyranha', productname: 'Nano M' } ]
+                    //             message: "\n\nHow many " + purchaseObject.dept + " " + purchaseObject.prod + "s would you like to buy: "
+                    //         }
+                    //     ])
+                    //     .then(answer2 => {
+                    //         //output from the inquirer responses are of the form { quantity: '2' }
+                    //         purchaseObject.qty = answer2.quantity;
+                    //         // let answers = [answer1.product, answer2.quantity];
+                    //         checkDB();
+                    //     })
                 }
             })
         })     
@@ -283,9 +336,7 @@ function queryPurchase() {
                 purchProd();
             }
             else {
-                console.log("\n\nCome and see us again when you are ready to go " +
-                    "paddling because right now you're being a whiny little bitch.")
-                endConn();
+                endConn("wimp");
             }
         });
 }
