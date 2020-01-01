@@ -98,38 +98,37 @@ function checkProd() {
 
 function chkPrices(descriptor) {
     //confirm that the entered price is not out of the normally expected range
-    inquirer
-        .prompt([
-            {
-                type: "list",
-                name: "valueOut",
-                message: "\n\nYour price of $" + newProd[2] + " per unit seems a little " + descriptor + ". Do you wish to adjust it?",
-                choices: ["Yes", "No"],
-                default: "Yes"
-            },
-            {  //this question only exposed to the user when the users responds in the affirmative to adjusting the price
-                type: "input",
-                name: "newPrice",
-                message: "\n\nWhat is the new price?",
-                when: (answers) => answers.valueOut === "Yes", //this question only asked when the response from the above is yes
-                validate: function (value) { //validate for non-numerical and empty entries
-                    if (isNaN(value) || value === "") {
-                        return "Please enter a valid price.";
-                    }
-                    else {
-                        return true;
+    if (descriptor !== "") {
+        inquirer
+            .prompt([
+                {
+                    type: "list",
+                    name: "valueOut",
+                    message: "\n\nYour price of $" + newProd[2] + " per unit seems a little " + descriptor + ". Do you wish to adjust it?",
+                    choices: ["Yes", "No"],
+                    default: "Yes"
+                },
+                {  //this question only exposed to the user when the users responds in the affirmative to adjusting the price
+                    type: "input",
+                    name: "newPrice",
+                    message: "\n\nWhat is the new price?",
+                    when: (answers) => answers.valueOut === "Yes", //this question only asked when the response from the above is yes
+                    validate: function (value) { //validate for non-numerical and empty entries
+                        if (isNaN(value) || value === "") {
+                            return "Please enter a valid price.";
+                        }
+                        else {
+                            return true;
+                        }
                     }
                 }
-            }
-        ]).then(answers => {
-            if (answers.valueOut === "Yes") {
-                newProd[2] = answers.newPrice;
-            }
-            checkProd();
-            
-        })
-
-    
+            ]).then(answers => {
+                if (answers.valueOut === "Yes") {
+                    newProd[2] = answers.newPrice;
+                }
+                checkProd();  
+            })
+        }
 }
 
 function newProductEntry() {
@@ -204,6 +203,7 @@ function newProductEntry() {
                        ,answers.backorder];
             //check for prices outside a normally expected range
             let descriptor;
+
             if (newProd[2] < 700) {
                 descriptor = "low";
                 chkPrices(descriptor);
@@ -241,7 +241,7 @@ function addInventory() {
                 console.log("\n\nDatabase updated for " + addInvent.productupdate + " with a final quantity in stock" +
                 " of " + addInvent.quantity + " units and a backorder quantity of " + addInvent.back + " units.")
             }
-            endConn();
+            whatNext();
         })
 }
 
@@ -321,7 +321,7 @@ function howMany() {
                 name:"addinventqty",
                 message: "\n\nHow many additional units do you wish to add?",
                 validate: function (value) {  //validate for non-numerical and empty entries
-                    if (isNaN(value) || value === "") {
+                    if (isNaN(value) || value === "" || parseInt(value) === 0) {
                         return "Please enter a valid number for the additional units."
                     }
                     else return true;

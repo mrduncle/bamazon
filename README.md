@@ -38,7 +38,7 @@ Upon intiating the node application _node bamazonManager.js_, the manager is pre
 1. The manager is then presented with options to exit or go back to the main menu.
     1. If the manager chooses to exit, the database connection is closed and the application finishes
     1. If the manager chooses to go back to the main menu, they are navigated back to the restart at the General section above.
-s
+
 **Add to inventory:**
 1. Upon choosing this option, the manager is presented with a list of the products available in the products table of the bamazon database to choose from for the purpose of updating.
 1. The manager chooses the product to update.
@@ -48,15 +48,38 @@ s
     1. Choosing to proceed can have two outcomes depending on whether the amount nominated to add to inventory is greater than the existing back order quantity or not.
         1. If the quantity nominated to be added is greater than the back order quantity, the extra units are added to the units currently in stock and the back order quantity is set to zero.
         1. If the quantity nominated to be added is less than or equal to the back order quantity, the manager can opt to subtract the incoming quantity from the back order quantity or set the back order quantity to zero. The extra units are also added to the units currently in stock.
+1. Once the products table has successfully had the stockqty and backorder columns updated, a confirmation is provided advising the final value of the stock holdings (existing units + new units) and backorder (previous quantity - new units or 0 whichever is greater).
+
+**Add new product:**
+1. Upon choosing this option, the manager is presented with a succession of prompts asking for the following information:
+    * product name
+    * department to which product belongs
+    * sell price for the product
+    * stocked units for this product
+    * back order quantity for this product
+1. The sell price, stocked units and back order quantity have validation requiring a number entry (a zero entry is permissible).
+1. Business rules have been applied to the sell price requiring a confirmation by the manager if the entered price is less than 700 or greater than 2000. Once the price has been accepted as is or a new price has been re-entered it is not re-checked again in the context of the 2000 < price < 700 until the check of the entire data set as noted below
+1. The manager is then presented with a summary of the details of the new product and can optionally accept the record or reject
+    1. If the data is accepted, the record is inserted into the products table of the database.
+    1. If the data is not accepted the manager is presented with three options to choose from.
+        1. Re-enter the record which takes control back to step 1 above.
+        1. Go back to the main menu which takes control to the menu allowing choices to view the products table, view low inventory etc..
+        1. Exit the application and close the database connection.
 
 
 
 
 
+# bamazonSupervisor
+**Purpose:**
 
-    1. If choosing to proceed with the offer, it is executed and a message confirming the way in which the order will proceed is provided (which product, how many and whether any are on back order or not). Additional options for proceeding are offered if the order is unable to be filled from stock and requires back ordering. The database is updated if the order is filled or, in the case where the entire order cannot be covered by stock, a back order is created to fill the order as requested by the user.
-    1. If choosing to cancel the order, it is purged. 
-1. At the conclusion of ordering, the user is offered the chance to review other products or exit the application.
-    1. If choosing to exit, the user is called a Legend or a whiny little bitch depending on whether they bought a new paddling tool or not
-    1. If the user chooses to review and/or order other items of stock, they are shown the products table again and the process starts again from 1.
- 
+This application permits personnel with supervisor level access to view the productsales and profitability by department and to add other departments to the departments table. The functions are detailed below. 
+
+**General:**
+
+Upon intiating the node application _node bamazonSupervisor.js_, the supervisor is presented with two database supervisor level options to choose from:
+1. View products sales by department
+1. Create new department
+
+**View products sales by department**
+1. The supervisor is presented with a table showing the results of a query which performs aggregate functions on the productsales column and also calculates the totalprofit given the sales and product sales for each department. Results are obtained by joining the products table and department grouped by the departmentID and departmentname

@@ -14,7 +14,6 @@ let connection = mySQL.createConnection({
 })
 
 function endConn() {
-    console.log("endConn: " + nature)
     if (nature === "wimp") {
         console.log("\n\nCome and see us again when you are ready to go " +
         "paddling\nbecause right now you're being a whiny little bitch.")
@@ -248,7 +247,7 @@ function assignData(data) {
                     //output from queries to the database are of the form [ RowDataPacket { departmentname: 'Pyranha', productname: 'Nano M' } ]
                     message: "\n\nHow many " + purchaseObject.dept + " " + purchaseObject.prod + "s would you like to buy: ",
                     validate: function (value) {
-                        if (isNaN(value) || value === "") {
+                        if (isNaN(value) || value === "" || parseInt(value) === 0) {
                             return "Please enter a valid number for the quantity you wish to buy.";
                         }
                         else {

@@ -94,19 +94,6 @@ function getDepartment() {
 }
 
 function displaySales() {
-    console.log("SELECT " +
-    "departmentID" +
-    ", S1.departmentname" +
-    ", overheadcosts" +
-    ", SUM(productsales)" + 
-    ", CASE WHEN SUM(productsales) IS NULL THEN -(overheadcosts) " +
-          "ELSE SUM(productsales) - overheadcosts AS totalprofit " +
-       "END " +
-"FROM departments AS S1 " +
-"LEFT JOIN products AS S2 " +
-"ON S1.departmentname = S2.departmentname " + 
-"GROUP BY departmentID, S1.departmentname, overheadcosts " + 
-"ORDER BY S1.departmentname")
     //display all products
     connection.query("SELECT " +
                           "departmentID " +
