@@ -1,5 +1,6 @@
 # bamazonCustomer
 **Purpose:**
+
 This application allows a user to choose a product from a list of available items in an inventory, specify a quantity and then choose to order the goods. 
 
 **Instructions**
