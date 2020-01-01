@@ -1,3 +1,4 @@
+USE bamazon;
 INSERT INTO departments 
 (
 	departmentname

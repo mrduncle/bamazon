@@ -1,3 +1,4 @@
+USE bamazon;
 CREATE TABLE `departments` (
   `departmentID` int(11) NOT NULL AUTO_INCREMENT,
   `departmentname` varchar(45) NOT NULL,

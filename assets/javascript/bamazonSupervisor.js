@@ -21,6 +21,7 @@ function endConn() {
 }
 
 function nextTask() {
+    //prompt the supervisor for the next task they wish to undertake
     inquirer
         .prompt ([
             {
@@ -60,6 +61,7 @@ function addDepartment() {
 }
 
 function getDepartment() {
+    //prompts the user for the department name
     inquirer
         .prompt ([
             {
@@ -78,10 +80,12 @@ function getDepartment() {
                 name: "overheads",
                 message: "\n\nPlease enter the overheads for the department.",
                 validate: function(value) {
-                    if (value === "") {
-                        return "Please enter a valid value.";
+                    if (isNaN(value) || value === "") {
+                        return "Please enter a valid overhead cost.";
                     }
-                    else return true;
+                    else {
+                        return true;
+                    }
                 }
             }
         ])
@@ -94,15 +98,15 @@ function getDepartment() {
 }
 
 function displaySales() {
-    //display all products
+    //display all profit results by department
     connection.query("SELECT " +
-                          "departmentID " +
-                          ",S1.departmentname " +
-                          ",overheadcosts " +
-                          ",SUM(productsales) " + 
+                          "departmentID AS `Department ID` " +
+                          ",S1.departmentname AS `Department Name` " +
+                          ",overheadcosts AS `Overhead Costs` " +
+                          ",SUM(productsales) AS `Department Sales` " + 
                           ",CASE WHEN SUM(productsales) IS NULL THEN -(overheadcosts) " +
                                 "ELSE SUM(productsales) - overheadcosts " +
-                           "END AS totalprofit " +
+                           "END AS `Total Profit` " +
                     "FROM departments AS S1 " +
                     "LEFT JOIN products AS S2 " +
                     "ON S1.departmentname = S2.departmentname " + 
@@ -116,7 +120,7 @@ function displaySales() {
 }
 
 function displayOptions() {
-    //ask the manager what they would like to do
+    //ask the supervisor what they would like to do
     inquirer
         .prompt([
             {
