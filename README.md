@@ -38,14 +38,16 @@ Upon intiating the node application _node bamazonManager.js_, the manager is pre
 1. The manager is then presented with options to exit or go back to the main menu.
     1. If the manager chooses to exit, the database connection is closed and the application finishes
     1. If the manager chooses to go back to the main menu, they are navigated back to the restart at the General section above.
-
+s
 **Add to inventory:**
 1. Upon choosing this option, the manager is presented with a list of the products available in the products table of the bamazon database to choose from for the purpose of updating.
 1. The manager chooses the product to update.
 1. The manager is prompted to enter the quantity of units to be added to the inventory. This entry has validation requiring a non-zero number.
-1. If the product has a non-NULL and non-nil back order quantity in the products table, the manager is prompted to confirm the number of units to be added to inventory if it doesn't match the back order quantity.
+1. If the product has a non-NULL and non-nil back order quantity in the products table, the manager is prompted to confirm they wish to proceed with the current number of units to be added to inventory if it doesn't match the back order quantity.
     1. Choosing to not proceed results in the manager being reprompted for the quantity of units to be added to the inventory.
-    1. 
+    1. Choosing to proceed can have two outcomes depending on whether the amount nominated to add to inventory is greater than the existing back order quantity or not.
+        1. If the quantity nominated to be added is greater than the back order quantity, the extra units are added to the units currently in stock and the back order quantity is set to zero.
+        1. If the quantity nominated to be added is less than or equal to the back order quantity, the manager can opt to subtract the incoming quantity from the back order quantity or set the back order quantity to zero. The extra units are also added to the units currently in stock.
 
 
 
