@@ -3,6 +3,7 @@
 let inquirer = require("inquirer");
 let mySQL = require("mysql");
 let purchaseObject = {};
+let nature;
 
 let connection = mySQL.createConnection({
     host: "localhost",
@@ -12,13 +13,14 @@ let connection = mySQL.createConnection({
     database: "bamazon"
 })
 
-function endConn(nature) {
+function endConn() {
+    console.log("endConn: " + nature)
     if (nature === "wimp") {
         console.log("\n\nCome and see us again when you are ready to go " +
         "paddling\nbecause right now you're being a whiny little bitch.")
     }
     else{
-        console.log("\n\nYou are officialy a legend enjoy your new paddling tool.")
+        console.log("\n\nYou are officially a Legend!! Enjoy your new paddling tool.")
     }
     connection.end(function(err){
         if (err) throw err;
@@ -27,50 +29,59 @@ function endConn(nature) {
     })
 }
 
-function updateBackOrd() {
-    connection.query("UPDATE products SET stockqty = 0, backorder = ? WHERE visproductID = ?", [purchaseObject.totebo, purchaseObject.prodID],
-        function(error, results) {
-            if (error) throw error;
-        })
-}
-
 function orderComplete() {
+    //order filled now
    if (purchaseObject.direct === "Order" || purchaseObject.direct === "Order items in stock only") {
-        if (purchaseObject.qty === 1) {
+        if (purchaseObject.qty === 1) { //single item purchased
         console.log("\n\nCongratulations!!! Your order has been processed, you will shortly receive " + purchaseObject.qty + 
         " x " + purchaseObject.dept + " " + purchaseObject.prod + ".");
         }
-        else {
+        else { //multiple items purchased
             console.log("\n\nCongratulations!!! Your order has been processed, you will shortly receive " + purchaseObject.qty + 
         " x " + purchaseObject.dept + " " + purchaseObject.prod + "s.");
         }
     }
+    //order must be filled completely through a back order
     else if (purchaseObject.inStock === 0) {
-        if (purchaseObject.qty === 1) {
+        if (purchaseObject.qty === 1) { //single item purchased
             console.log("\n\nCongratulations!!! Your order has been processed, your " + purchaseObject.qty + 
             " x " + purchaseObject.dept + " " + purchaseObject.prod + " are on back order for you.")
         }
-        else {
+        else { //multiple items purchased
             console.log("\n\nCongratulations!!! Your order has been processed, your " + purchaseObject.qty + 
             " x " + purchaseObject.dept + " " + purchaseObject.prod + "s are on back order for you.")
         }
     }
-    else {
+    //order has a back order component
+    else { //single item purchased
         if (purchaseObject.qty === 1) {
             console.log("\n\nCongratulations!!! Your order has been processed, you will shortly receive " + purchaseObject.inStock + 
             " x " + purchaseObject.dept + " " + purchaseObject.prod + ". " + purchaseObject.persbo + " additional " + 
             purchaseObject.dept + " " + purchaseObject.prod + " are on back order for you.")
         }
-        else {
+        else { //multiple items purchased
             console.log("\n\nCongratulations!!! Your order has been processed, you will shortly receive " + purchaseObject.inStock + 
             " x " + purchaseObject.dept + " " + purchaseObject.prod + "s. " + purchaseObject.persbo + " additional " + 
             purchaseObject.dept + " " + purchaseObject.prod + "s are on back order for you.")
         }
-    }  
+    }
+    nature = "Legend"
+    nextTask(nature);  
+}
+
+function updateBackOrd() {
+    let toteSales = parseInt((purchaseObject.qty * purchaseObject.price) + purchaseObject.prodSales);
+    connection.query("UPDATE products " +
+                     "SET stockqty = 0 " +
+                     ",backorder = ? " + 
+                     ",productsales = ? " + 
+                     " WHERE visproductID = ?", [purchaseObject.totebo, toteSales, purchaseObject.prodID],
+        function(error, results) {
+            if (error) throw error;
+        })
 }
 
 function ohYouLegend() {
-    // console.log("start of ohYouLegend orderQuants: " + orderQuants.buy);
     if (purchaseObject.direct === "Order" || purchaseObject.direct === "Order items in stock only") {
         //if the order quantity exceeds the stock but the user has driven execution to this location then they  
         //have opted to just purchase what is available in stock so the orderData variable must be adjusted
@@ -78,22 +89,27 @@ function ohYouLegend() {
             purchaseObject.qty = purchaseObject.inStock;
         }
         purchaseObject.remStk = parseInt(purchaseObject.inStock - purchaseObject.qty);
-        connection.query("UPDATE products SET stockqty = ? WHERE visproductID = ?", [purchaseObject.remStk, purchaseObject.prodID], 
+        connection.query("UPDATE products " +
+                         "SET " +
+                             "stockqty = ? " +
+                             ",productsales = " + parseInt(purchaseObject.qty * purchaseObject.price + purchaseObject.prodSales) + 
+                             " WHERE visproductID = ?"
+                             , [purchaseObject.remStk, purchaseObject.prodID], 
             function(error, results) {
                 if (error) throw error;
                 orderComplete();
-                endConn("legend");
         })
     }
     else { //case for back order scenario where response is "Order all items requested"
         purchaseObject.persbo = parseInt(purchaseObject.qty - purchaseObject.inStock);
-        if (purchaseObject.persbo >= purchaseObject.back) {
+        //case where the personal back order amount is greater than the existing back order amount
+        if (purchaseObject.persbo >= purchaseObject.back) { //set the total back order amount to be existing plus extras over and above existing
             purchaseObject.totebo = (purchaseObject.persbo - purchaseObject.back) + purchaseObject.back;
         }
-        else purchaseObject.totebo = purchaseObject.back
+        //case where the existing back order amount covers the personal back order amount 
+        else purchaseObject.totebo = purchaseObject.back //leave back order amount as is
         updateBackOrd();
         orderComplete();
-        endConn("legend");
     }
    
 }
@@ -106,9 +122,9 @@ function partAvail() {
                 name: "buy",
                 message: "\n\nThere are " + purchaseObject.inStock + " in stock now with " +
                     "an existing back order of " + purchaseObject.back + ".\nThe " +
-                    "price for the entire order is $" + parseInt(purchaseObject.inStock * purchaseObject.price) +
-                    ".00. with $" + parseInt((purchaseObject.qty - purchaseObject.inStock) * purchaseObject.price) + ".00 " + 
-                    "due when you receive your back ordered items. \nHow do you wish to proceed?",
+                    "price for the entire order is $" + parseInt(purchaseObject.qty * purchaseObject.price) +
+                    ".00. The price for the items in stock is $" + parseInt(purchaseObject.inStock * purchaseObject.price) +
+                    ".\nHow do you wish to proceed?",
                 choices: ["Order items in stock only", "Order all items requested", "Cancel order"],
                 default: "Order items in stock only"
             }
@@ -119,7 +135,7 @@ function partAvail() {
                 ohYouLegend();
             }
             else {
-                qnAreYouLame();
+                nextTask();
             }
         })
 }
@@ -131,8 +147,8 @@ function noneAvail() {
                 type:"list",
                 name: "buy",
                 message: "\n\nThere are currently none of those products in stock and " + purchaseObject.back +
-                    " on back order.\nThe price for your back ordered items is $" + 
-                    parseInt(purchaseObject.qty * purchaseObject.price) + ".00 due when you receive back \nthem. " +
+                    " on back order.\nThe price to proceed with your order is $" + 
+                    parseInt(purchaseObject.qty * purchaseObject.price) + ".00. " +
                     "How do you wish to proceed?",
                 choices: ["Order all items requested", "Cancel order" ],
                 default: "Order all items requested"
@@ -144,29 +160,28 @@ function noneAvail() {
                 ohYouLegend();
             }
             else {
-                qnAreYouLame();
+                nextTask();
             }
         })
 }
 
-function qnAreYouLame() {
+function nextTask() {
     inquirer
-        .prompt([
+        .prompt ([
             {
                 type: "list",
-                name: "lameorno",
-                message:"\n\nIs there another product you might be interested in?",
+                name: "nextStep",
+                message: "\n\nIs there another product you might be interested in?\n\n",
                 choices: ["Yes", "No"],
                 default: "Yes"
-            }
+            },
         ])
-        .then (answers => {
-            purchaseObject.direct = answers.lameorno;
-            if (purchaseObject.direct === "Yes") {
-                showProducts();
-            }
+        .then(answers => {
+            purchaseObject.direct = answers.nextStep;
+            if (purchaseObject.direct === "Yes") showProducts();
             else {
-                endConn("wimp");
+                if (nature !== "Legend") nature = "wimp";
+                endConn();
             }
         })
 }
@@ -189,7 +204,8 @@ function allInStock() {
                 ohYouLegend();
             }
             else {
-                qnAreYouLame();
+                if (nature !== "Legend") nature = "wimp";
+                nextTask();
             }
         })
 }
@@ -206,8 +222,8 @@ function checkDB() {
         partAvail();
     }
 }
+
 function assignData(data) {
-    console.log(data);
     purchaseObject.price = data[0].price;
     purchaseObject.inStock = data[0].stockqty;
     purchaseObject.dept = data[0].departmentname;
@@ -255,7 +271,15 @@ function purchProd() {
         .prompt([
             {
                 name: "product",
-                message: "\n\nNominate which product you wish to buy by productID: "
+                message: "\n\nNominate which product you wish to buy by productID: ",
+                validate: function (value) {
+                    if (isNaN(value) || value === "") {
+                        return "Please enter a valid ID for the product you wish to buy.";
+                    }
+                    else {
+                        return true;
+                    }
+                }
             }
         ])
         .then(answer1 => {
@@ -279,43 +303,13 @@ function purchProd() {
                         .then(answer => {
                             if (answer.noResults === "Yes") showProducts();
                             else {
-                                endConn("wimp");
+                                nextTask();
                             }
                             
                         })
                 }
                 else {  //productID yielded a matching record in the database
                     assignData(rows)
-                    // purchaseObject.price = rows[0].price;
-                    // purchaseObject.inStock = rows[0].stockqty;
-                    // purchaseObject.dept = rows[0].departmentname;
-                    // purchaseObject.prod = rows[0].productname;
-                    // if (rows[0].productsales !== null) {
-                    //     purchaseObject.prodSales = rows[0].productsales;
-                    // }
-                    // else {
-                    //     purchaseObject.prodSales = 0;
-                    // }
-                    // if (rows[0].backorder !== null) {
-                    //     purchaseObject.back = rows[0].backorder;
-                    // }
-                    // else {
-                    //     purchaseObject.back = 0; 
-                    // }
-                    // inquirer
-                    //     .prompt([
-                    //         {
-                    //             name: "quantity",
-                    //             //output from queries to the database are of the form [ RowDataPacket { departmentname: 'Pyranha', productname: 'Nano M' } ]
-                    //             message: "\n\nHow many " + purchaseObject.dept + " " + purchaseObject.prod + "s would you like to buy: "
-                    //         }
-                    //     ])
-                    //     .then(answer2 => {
-                    //         //output from the inquirer responses are of the form { quantity: '2' }
-                    //         purchaseObject.qty = answer2.quantity;
-                    //         // let answers = [answer1.product, answer2.quantity];
-                    //         checkDB();
-                    //     })
                 }
             })
         })     
@@ -333,12 +327,12 @@ function queryPurchase() {
             }
         ])
         .then(answers => {
-            console.info("Answer:", answers.purchaseProduct);
             if (answers.purchaseProduct === "yes") {
                 purchProd();
             }
             else {
-                endConn("wimp");
+                if (nature !== "Legend") nature = "wimp";
+                endConn();
             }
         });
 }
@@ -346,7 +340,6 @@ function queryPurchase() {
 function dbConnection() {
     connection.connect(function(err) {
         if (err) throw err;
-        console.log("Connected as id " + connection.threadId);
     })
 }
 

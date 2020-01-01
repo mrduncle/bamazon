@@ -39,27 +39,88 @@ function nextTask() {
 
 function addDepartment() {
     //create the new record by inserting the compulsory fields 
-    connection.query("INSERT INTO departments (departmentname, overheadcosts) " + 
-        "VALUES ('" +
-            newDept[0] + 
-            "', '" + newDept[1] +  ")", function(err, rows) {
-            if (err) throw err;
+    connection.query("INSERT INTO departments " +
+                    "(" + 
+                          "departmentname" +
+                          ", overheadcosts" +
+                     ") " + 
+                     "VALUES " +
+                     "('" +
+                           newDept[0] + 
+                          "', " + newDept[1] +
+                     ")", function(err, rows) {
+            if (err) {
+                throw err;
+            }
+            else {
+                console.log("Your new department " + newDept[0] + " has been added.")
+            }
+            nextTask();
     })
 }
 
+function getDepartment() {
+    inquirer
+        .prompt ([
+            {
+                type: "input",
+                name: "department",
+                message: "\n\nPlease enter the name of the new department.",
+                validate: function(value) {
+                    if (value === "") {
+                        return "Please enter a valid value.";
+                    }
+                    else return true;
+                }
+            },
+            {
+                type: "input",
+                name: "overheads",
+                message: "\n\nPlease enter the overheads for the department.",
+                validate: function(value) {
+                    if (value === "") {
+                        return "Please enter a valid value.";
+                    }
+                    else return true;
+                }
+            }
+        ])
+        .then(answers => {
+            //answers of the type {department: 'Riot', overheads: '10000'}
+            newDept[0] = answers.department;
+            newDept[1] = answers.overheads;
+            addDepartment();
+        })  
+}
+
 function displaySales() {
+    console.log("SELECT " +
+    "departmentID" +
+    ", S1.departmentname" +
+    ", overheadcosts" +
+    ", SUM(productsales)" + 
+    ", CASE WHEN SUM(productsales) IS NULL THEN -(overheadcosts) " +
+          "ELSE SUM(productsales) - overheadcosts AS totalprofit " +
+       "END " +
+"FROM departments AS S1 " +
+"LEFT JOIN products AS S2 " +
+"ON S1.departmentname = S2.departmentname " + 
+"GROUP BY departmentID, S1.departmentname, overheadcosts " + 
+"ORDER BY S1.departmentname")
     //display all products
     connection.query("SELECT " +
                           "departmentID " +
-                          ",departmentname " +
-                          ",SUM(overheadcosts) " +
+                          ",S1.departmentname " +
+                          ",overheadcosts " +
                           ",SUM(productsales) " + 
-                          ",SUM(productsales) - SUM(overheadcosts) AS totalprofit " +
+                          ",CASE WHEN SUM(productsales) IS NULL THEN -(overheadcosts) " +
+                                "ELSE SUM(productsales) - overheadcosts " +
+                           "END AS totalprofit " +
                     "FROM departments AS S1 " +
-                    "INNER JOIN products AS S2 " +
+                    "LEFT JOIN products AS S2 " +
                     "ON S1.departmentname = S2.departmentname " + 
-                    "GROUP BY departmentID, S1.departmentname " + 
-                    "ORDER BY departmentname",
+                    "GROUP BY departmentID, S1.departmentname, overheadcosts " + 
+                    "ORDER BY S1.departmentname",
         function(err, rows, fields) {
             if (err) throw err;
             console.table(rows);
@@ -85,7 +146,7 @@ function displayOptions() {
                 displaySales();
             }
             else {
-                addDepartment();
+                getDepartment();
             }
         })
 }
