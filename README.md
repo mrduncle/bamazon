@@ -86,5 +86,4 @@ Upon intiating the node application _node bamazonSupervisor.js_, the supervisor 
 
 Department Overheads | Product Sales by Department
 -------------------- | ---------------------------
-
 ![Department overheads](assets/images/Departmentoverheads.png) | ![Product sales by department](assets/images/Productsalesbydepartment.png)
