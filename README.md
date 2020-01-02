@@ -84,4 +84,4 @@ Upon intiating the node application _node bamazonSupervisor.js_, the supervisor 
 **View products sales by department**
 1. The supervisor is presented with a table showing the results of a query which performs aggregate functions on the productsales column and also calculates the totalprofit given the overheadcosts and aggregate of productsales for each department. Results are obtained by left joining (in order to get new departments just added which do not yet have productsales) the department and products table and the results are grouped by the departmentID, departmentname and overhead costs.
 
-![Department overheads]("Department overheads.png")
+![Department overheads](assets/images/Departmentoverheads.png)
