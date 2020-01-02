@@ -67,9 +67,6 @@ Upon intiating the node application _node bamazonManager.js_, the manager is pre
         1. Exit the application and close the database connection.
 
 
-
-
-
 # bamazonSupervisor
 **Purpose:**
 
@@ -84,10 +81,43 @@ Upon intiating the node application _node bamazonSupervisor.js_, the supervisor 
 **View products sales by department**
 1. The supervisor is presented with a table showing the results of a query which performs aggregate functions on the productsales column and also calculates the totalprofit given the overheadcosts and aggregate of productsales for each department. Results are obtained by left joining (in order to get new departments just added which do not yet have productsales) the department and products table and the results are grouped by the departmentID, departmentname and overhead costs.
 
-Department Overheads | Product Sales by Department
--------------------- | ---------------------------
-![Department overheads](assets/images/Departmentoverheads.png) | ![Product sales by department](assets/images/Productsalesbydepartment.png)
-Total Profit
-------------
-![Total Profit](assets/images/Totalprofit.png)
+**Create new department**
+1. The supervisor is asked for the name of the new department and the overheads for the new department. The new department name is required to be non-empty and the overheads is required to be a non-empty number (zero is permissible).
+1. The manager is then presented with a summary of the details of the new department and can optionally accept the record or reject
+    1. If the data is accepted, the record is inserted into the departments table of the database.
+    1. If the data is not accepted the supervisor is presented with three options to choose from.
+        1. Re-enter the record which takes control back to step 1 above.
+        1. Go back to the main menu which takes control to the menu allowing choices to view product sales by department or create new department.
+        1. Exit the application and close the database connection.
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>Department Overheads</th>
+            <th>Product sales by department</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><img src="assets/images/Departmentoverheads.png" alt="Department overheads"></td>
+            <td><img src="assets/images/Productsalesbydepartment.png" alt="Product sales by department"></td>
+        </tr>
+        <tr>
+            <th colspan=2>Total Profit</th>
+        </tr>
+        <tr>
+            <td colspan=2>
+              <img src="assets/images/Totalprofit.png" alt="Total Profit">
+            </td>
+        </tr>
+        <tr>
+            <th colspan=2>Demonstration of bamazon Supervisor application</th>
+        </tr>
+        <tr>
+            <td colspan=2 style="text-align:center">
+              <a href="assets/images/Demonstration of bamazonSupervisor.webm">Demonstration of bamazonSupervisor.js</a>
+            </td>
+        </tr>
+    </tbody>
+</table>
 
