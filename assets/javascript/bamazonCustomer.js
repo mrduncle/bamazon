@@ -77,6 +77,7 @@ function updateBackOrd() {
                      " WHERE visproductID = ?", [purchaseObject.totebo, toteSales, purchaseObject.prodID],
         function(error, results) {
             if (error) throw error;
+            orderComplete();
         })
 }
 
@@ -101,16 +102,10 @@ function ohYouLegend() {
     }
     else { //case for back order scenario where response is "Order all items requested"
         purchaseObject.persbo = parseInt(purchaseObject.qty - purchaseObject.inStock);
-        //case where the personal back order amount is greater than the existing back order amount
-        if (purchaseObject.persbo >= purchaseObject.back) { //set the total back order amount to be existing plus extras over and above existing
-            purchaseObject.totebo = (purchaseObject.persbo - purchaseObject.back) + purchaseObject.back;
-        }
-        //case where the existing back order amount covers the personal back order amount 
-        else purchaseObject.totebo = purchaseObject.back //leave back order amount as is
+        //set the total back order amount to be existing back order plus extras from the current order
+        purchaseObject.totebo = purchaseObject.persbo + purchaseObject.back;
         updateBackOrd();
-        orderComplete();
-    }
-   
+    }  
 }
 
 function partAvail() {
@@ -177,7 +172,9 @@ function nextTask() {
         ])
         .then(answers => {
             purchaseObject.direct = answers.nextStep;
-            if (purchaseObject.direct === "Yes") showProducts();
+            if (purchaseObject.direct === "Yes") {
+                showProducts();
+            }
             else {
                 if (nature !== "Legend") nature = "wimp";
                 endConn();
@@ -336,12 +333,6 @@ function queryPurchase() {
         });
 }
 
-function dbConnection() {
-    connection.connect(function(err) {
-        if (err) throw err;
-    })
-}
-
 function showProducts() {
     purchaseObject = {};
     connection.query("SELECT visproductID as productID, productname, departmentname, price, " +
@@ -352,6 +343,12 @@ function showProducts() {
             "=========================================================");
         console.table(rows);
         queryPurchase();
+    })
+}
+
+function dbConnection() {
+    connection.connect(function(err) {
+        if (err) throw err;
     })
 }
 

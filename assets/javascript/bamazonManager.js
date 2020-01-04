@@ -402,7 +402,7 @@ function whatNext() {
 function displayProducts() {
     //display all products
     connection.query("SELECT productID, departmentname, productname, price, stockqty, " +
-        "backorder FROM products ORDER BY departmentname",
+        "backorder, productsales FROM products ORDER BY productID",
         function(err, rows, fields) {
             if (err) throw err;
             console.table(rows);
