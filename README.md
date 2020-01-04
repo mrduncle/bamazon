@@ -110,7 +110,7 @@ Upon intiating the node application _node bamazonManager.js_, the manager is pre
     <tbody>
         <tr>
             <td><img src="assets/images/mgrProductsview.png" alt="Manager view of products table"></td>
-            <td><img src="assets/images/Lowinventory.png" alt="Stock with an inventory of less than 5 units"></td>
+            <td><img src="assets/images/LowInventory.png" alt="Stock with an inventory of less than 5 units"></td>
         </tr>
         <tr>
             <th>Products table prior to adding inventory</th>
@@ -118,7 +118,7 @@ Upon intiating the node application _node bamazonManager.js_, the manager is pre
         </tr>
         <tr>
             <td>
-              <img src="assets/images/mgrProductslistbefore.png" alt="Products table prior to adding inventory">
+              <img src="assets/images/mgrProductlistbefore.png" alt="Products table prior to adding inventory">
             </td>
             <td>
               <img src="assets/images/41PunkRockersadded.png" alt="Products table after adding 41 Punk Rockers">
