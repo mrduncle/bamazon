@@ -7,6 +7,8 @@ INSERT INTO products
     ,departmentname
     ,price
     ,stockqty
+    ,backorder
+    ,productsales
 )
 VALUES
 (
@@ -14,28 +16,36 @@ VALUES
     ,"Nano M"
     ,"Pyranha"
     ,1200.00
-    ,15
+    ,0
+    ,4
+    ,22800
 ),
 (
 	1
     ,"SCUD"
     ,"Bliss Stick"
     ,900.00
-    ,10
+    ,2
+    ,0
+    ,10800
 ),
 (
 	2
 	,"Mystic"
     ,"Bliss Stick"
     ,900.00
-    ,15
+    ,0
+    ,null
+    ,13500
 ),
 (
     3
     ,"All Star"
     ,"Jackson"
     ,1100.00
-    ,20
+    ,2
+    ,0
+    ,23100
 ),
 (
     4
@@ -43,20 +53,26 @@ VALUES
     ,"Jackson"
     ,1000.00
     ,12
+    ,null
+    ,null
 ),
 (
     5
     ,"Gangsta"
     ,"Waka"
     ,1200.00
-    ,25
+    ,0
+    ,5
+    ,36000
 ),
 (
     6
     ,"Punk Rocker"
     ,"Jackson"
     ,1000.00
-    ,7
+    ,3
+    ,20
+    ,null
 ),
 (
     7
@@ -64,13 +80,17 @@ VALUES
     ,"Jackson"
     ,1200.00
     ,20
+    ,null
+    ,null
 ),
 (
 	8
     ,"Mini Mystic"
     ,"Bliss Stick"
     ,900.00
-    ,5
+    ,7
+    ,0
+    ,9000
 ),
 (
 	9
@@ -78,13 +98,17 @@ VALUES
     ,"Bliss Stick"
     ,850.00
     ,3
+    ,null
+    ,null
 ),
 (
 	10
     ,"Smoothy"
     ,"Bliss Stick"
     ,850.00
-    ,11
+    ,0
+    ,2
+    ,12750
 ),
 (
 	11
@@ -92,27 +116,35 @@ VALUES
     ,"Dagger"
     ,1100.00
     ,16
+    ,null
+    ,null
 ),
 (
 	12
     ,"Phantom 1.0"
     ,"Dagger"
     ,1200.00
-    ,25
+    ,23
+    ,null
+    ,2400
 ),
 (
 	13
     ,"Phoenix"
     ,"Wave Sports"
     ,1300.00
-    ,26
+    ,25
+    ,null
+    ,1300
 ),
 (
 	14
     ,"Nirvana"
     ,"Jackson"
     ,1100.00
-    ,30
+    ,28
+    ,null
+    ,2200
 )
 	
 	

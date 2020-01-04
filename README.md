@@ -13,6 +13,41 @@ This application allows a user to choose a product from a list of available item
     1. If choosing to exit, the user is called a Legend or a whiny little bitch depending on whether they bought a new paddling tool or not, the database connection is closed and the application finishes.
     1. If the user chooses to review and/or order other items of stock, they are shown the products table again and the process starts again from 1.
 
+<table border="1">
+    <thead>
+        <tr>
+            <th>Products table prior to any orders being placed</th>
+            <th>After ordering product with no stock on hand</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><img src="assets/images/Productlistbefore.png" alt="Original product list"></td>
+            <td><img src="assets/images/After3WakaGangstas.png" alt="Product list after zero stock item purchased"></td>
+        </tr>
+        <tr>
+            <th>After ordering product which can be completely filled from stock</th>
+            <th>After ordering product which can be partially filled from stock</th>
+        </tr>
+        <tr>
+            <td>
+              <img src="assets/images/After12Jackson2Funs.png" alt="Product list after item purchased which was source fully from stock">
+            </td>
+            <td>
+              <img src="assets/images/After24PunkRockers.png" alt="Product list after item purchased which was partially sourced from stock">
+            </td>
+        </tr>
+        <tr>
+            <th colspan=2>Demonstration of bamazon Supervisor application</th>
+        </tr>
+        <tr>
+            <td colspan=2 style="text-align:center">
+              <a href="assets/images/Demonstration of bamazonCustomer.webm">Demonstration of bamazonCustomer.js</a>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
 
 # bamazonManager
 **Purpose:**
