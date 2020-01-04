@@ -22,7 +22,7 @@ This application allows a user to choose a product from a list of available item
     </thead>
     <tbody>
         <tr>
-            <td><img src="assets/images/Productlistbefore.png" alt="Original product list"></td>
+            <td><img src="assets/images/csProductlistbefore.png" alt="Original product list"></td>
             <td><img src="assets/images/After3WakaGangstas.png" alt="Product list after zero stock item purchased"></td>
         </tr>
         <tr>
@@ -100,7 +100,64 @@ Upon intiating the node application _node bamazonManager.js_, the manager is pre
         1. Re-enter the record which takes control back to step 1 above.
         1. Go back to the main menu which takes control to the menu allowing choices to view the products table, view low inventory etc..
         1. Exit the application and close the database connection.
-
+<table border="1">
+    <thead>
+        <tr>
+            <th>Manager view of products table</th>
+            <th>Stock with an inventory of less than 5 units</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><img src="assets/images/mgrProductsview.png" alt="Manager view of products table"></td>
+            <td><img src="assets/images/Lowinventory.png" alt="Stock with an inventory of less than 5 units"></td>
+        </tr>
+        <tr>
+            <th>Products table prior to adding inventory</th>
+            <th>Products table after adding 41 Punk Rockers</th>
+        </tr>
+        <tr>
+            <td>
+              <img src="assets/images/mgrProductslistbefore.png" alt="Products table prior to adding inventory">
+            </td>
+            <td>
+              <img src="assets/images/41PunkRockersadded.png" alt="Products table after adding 41 Punk Rockers">
+            </td>
+        </tr>
+        <tr>
+            <th>Products table after adding 8 Gangstas</th>
+            <th>Products table after adding 10 Smoothys</th>
+        </tr>
+        <tr>
+            <td>
+              <img src="assets/images/8Gangstasadded.png" alt="Products table after adding 8 Gangstas">
+            </td>
+            <td>
+              <img src="assets/images/10Smoothysadded.png" alt="Products table after adding 10 Smoothys">
+            </td>
+        </tr>
+        <tr>
+            <th>Products table after adding Shva M as a new product</th>
+            <th>Products table after adding Shiva L as a new product</th>
+        </tr>
+        <tr>
+            <td>
+              <img src="assets/images/NewproductShvaM.png" alt="Products table after adding Shva M as a new product">
+            </td>
+            <td>
+              <img src="assets/images/NewproductShivaL.png" alt="Products table after adding Shiva L as a new product">
+            </td>
+        </tr>
+        <tr>
+            <th colspan=2>Demonstration of bamazon Manager application</th>
+        </tr>
+        <tr>
+            <td colspan=2 style="text-align:center">
+              <a href="assets/images/Demonstration of bamazonManager.webm">Demonstration of bamazonManager.js</a>
+            </td>
+        </tr>
+    </tbody>
+</table>
 
 # bamazonSupervisor
 **Purpose:**
